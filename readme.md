@@ -74,3 +74,84 @@ To improve matching accuracy, I implement the following steps:
 
 3. In cases where ISS and Glass Lewis use different styles and the total number of proposals for an annual meeting are different between datasets, I classify these as errors and exclude them. Of the 18,156 annual meetings in the sample, 179 instances occur where the total number of proposals differs between the two datasets.
  
+
+### 5. In case you are a little geeky
+
+Here are the two python functions that I use to convert the `.pdf` files from the public law request to `.csv` files of each election: `pdf_to_txt()` and `process_txt()`:
+```python
+def pdf_to_txt(year=2008):
+    """
+    convert pdf to text file
+    :return  each year's pdf file e.g. 2018.pdf
+    """
+    pdf_file = open(r'raw_data\GL recommendations\%s.pdf' % year, 'rb')
+    write_file = open(r'raw_data\GL recommendations\processed\%s.txt' % year, 'w', encoding="utf-8")
+    read_pdf = PyPDF2.PdfFileReader(pdf_file)
+    number_of_pages = read_pdf.getNumPages()
+    for page_number in range(number_of_pages):  # use xrange in Py2
+        page = read_pdf.getPage(page_number)
+        page_content = page.extractText()
+        write_file.write(str(page_content))
+        print('(year %s) page %s out of %s' % (year, page_number, number_of_pages))
+    write_file.close()
+
+def process_txt(year=2008):
+    """
+    Read text file and make it into table
+    :return  each year's year.csv e.g. 2018.csv
+    """
+    content = open(r'raw_data\GL recommendations\processed\%s.txt' % year, 'r', encoding="utf8").read()
+
+    #  Process Company Form
+    content = re.sub(r'\n(.*)\nVoted', r' -END- -START- \n\1\nVoted | ', content)
+    content = re.sub(r'\n(.*)\nUnvoted', r' -END- -START- \n\1\nUnvoted | ', content)
+    content = content + '-END-'
+    content = re.sub(r'\n', r' ', content)
+    content = re.sub('[0-9]+ of [0-9]+', '', content)  # delete page number
+    content = ' '.join(content.split())  # replace multiple space to one
+
+    # # Process Proposal
+    # content = re.sub(r'([0-9]\.*[0-9]*[0-9]*)', r'| |\1', content)
+
+    companies = re.findall('-START-.*?-END-', content)
+    print('%s of companies covered in year %s' % (len(companies), year))
+
+    table = pd.DataFrame(columns=['company_name', 'meeting', 'date', 'item_id', 'description', 'GL_rec', 'voted'])
+    i = 0
+    for counter, company in enumerate(companies):
+        # print(company)
+        print(str(year) + ' : ' + str(counter) + '/' + str(len(companies)))
+        meeting = find_between(company, '|', 'Agenda').strip()
+        date = find_between(company, 'Agenda (', ') GL').strip()
+        real_content = find_between(company, 'Vote Cast', '-END-').strip()  # Find content after the header
+        real_content = re.sub(r'[0-9]*? Election of Directors ([0-9]*?\.1)', r'\1',
+                              real_content).strip()  # delete the Election of Directors
+        real_content = re.sub(r'[0-9]{1,2} Non-Voting Agenda Item', r'', real_content).strip()  # Non Vote Item
+        real_content = re.sub(r'[0-9]{1,2} Non-Voting Meeting Note', r'', real_content).strip()  # Non Vote Item
+        real_content = re.sub(
+            r'(\b[0-9]{1,2}\.*[0-9]{0,2}(?! Year)\b(.*?)(?:Withhold|For|Against|Abstain|1 Year|2 Year|3 Year|Do Not Vote))',
+            r' -end- -start- \1', real_content) + ' -end-'  # cut different proposals
+        company_name = find_between(company, '-START-', '|').replace('Voted', '').replace('Unvoted', '').strip()
+        voted = 1 if 'Voted' in company else 0
+        proposals = re.findall(r'-start-.*?-end-', real_content)
+        for proposal in proposals:
+            i = i + 1
+            item_id = str(re.findall(r'\b[0-9]{1,2}\.*[0-9]{0,2}\b', proposal)[0])
+            description = re.findall(
+                r'\b[0-9]{1,2}\.*[0-9]{0,2}(?! Year)\b(.*?)(?:Withhold|For|Against|Abstain|1 Year|2 Year|3 Year|Do Not Vote|-end-)',
+                proposal)[0]
+            description = ' '.join(description.split())  # replace multiple space to one
+            GL_rec = get_first(
+                re.findall(r'(?:Withhold|For|Against|Abstain|1 Year|2 Year|3 Year|Do Not Vote)', proposal))
+            table.loc[i, 'description'] = description
+            table.loc[i, 'company_name'] = company_name
+            table.loc[i, 'meeting'] = meeting
+            table.loc[i, 'date'] = date
+            table.loc[i, 'item_id'] = ':' + item_id
+            table.loc[i, 'GL_rec'] = GL_rec
+            table.loc[i, 'voted'] = voted
+    #     Delete duplicates
+    table['item_id'] = table['item_id'].astype('str')
+    table = table.drop_duplicates(['company_name', 'date', 'meeting', 'item_id', 'description', 'GL_rec'])
+    table.to_csv(r'raw_data\GL recommendations\processed\%s.csv' % year, index=False)
+```
