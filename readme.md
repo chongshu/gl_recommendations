@@ -11,7 +11,7 @@ Shu, Chong. "The Proxy Advisory Industry: Influencing and Being Influenced." <i>
 
 ### 1. Download dataset
 
-&nbsp;&nbsp;&nbsp;&nbsp; <b><a href="processed_GL_recommendations.csv">data.csv</a></b>
+&nbsp;&nbsp;&nbsp;&nbsp; <b><a href="./Public Record Request/processed_GL_recommendations.csv">data.csv</a></b>
 
 
 ### 2. Variable definitions
@@ -40,7 +40,7 @@ The Department of State Treasurer responded with the following files:
 
 #### Example of response
 
-<img src="./figures/example.png" style="border: 2px solid black;" />
+<img src="./Figures/example.png" style="border: 2px solid black;" />
  
 ### 4. Match with ISS voting analytics dataset
 
