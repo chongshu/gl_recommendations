@@ -40,7 +40,7 @@ The Department of State Treasurer responded with the following files:
 
 #### Example of response
 
-<img src="./Figures/example.png" style="border: 2px solid black;" />
+<img src="./figures/example.png" style="border: 2px solid black;" />
  
 ### 4. Match with ISS voting analytics dataset
 
