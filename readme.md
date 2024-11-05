@@ -11,7 +11,7 @@ Shu, Chong. "The Proxy Advisory Industry: Influencing and Being Influenced." <i>
 
 ### 1. Download dataset
 
-&nbsp;&nbsp;&nbsp;&nbsp; <b><a href="./Public Record Request/processed_GL_recommendations.csv">data.csv</a></b>
+&nbsp;&nbsp;&nbsp;&nbsp; <b><a href="https://github.com/chongshu/gl_recommendations/raw/refs/heads/master/Public%20Record%20Request/processed_GL_recommendations.csv">[Download File] </a></b>
 
 
 ### 2. Variable definitions
