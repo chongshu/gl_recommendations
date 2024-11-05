@@ -75,7 +75,7 @@ To improve matching accuracy, I implement the following steps:
 3. In cases where ISS and Glass Lewis use different styles and the total number of proposals for an annual meeting are different between datasets, I classify these as errors and exclude them. Of the 18,156 annual meetings in the sample, 179 instances occur where the total number of proposals differs between the two datasets.
  
 
-### 5. In case you are a little geeky
+### 5. Just in case you are a little geeky :>
 
 Here are the two python functions that I use to convert the `.pdf` files from the public law request to `.csv` files of each election: `pdf_to_txt()` and `process_txt()`:
 ```python
@@ -109,10 +109,7 @@ def process_txt(year=2008):
     content = re.sub(r'\n', r' ', content)
     content = re.sub('[0-9]+ of [0-9]+', '', content)  # delete page number
     content = ' '.join(content.split())  # replace multiple space to one
-
-    # # Process Proposal
-    # content = re.sub(r'([0-9]\.*[0-9]*[0-9]*)', r'| |\1', content)
-
+    
     companies = re.findall('-START-.*?-END-', content)
     print('%s of companies covered in year %s' % (len(companies), year))
 
